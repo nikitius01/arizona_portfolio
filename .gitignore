@@ -17,9 +17,6 @@
 debug/
 release/
 
-# —генерированный файл с версией (если вы не хотите его коммитить)
-compiler/include/github/git.inc
-
 # Ћоги
 *.log
 
