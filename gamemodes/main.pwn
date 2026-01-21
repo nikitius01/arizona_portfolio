@@ -26,7 +26,9 @@ public OnGameModeInit()
 
     print("started");
 
-    Iter_Init(g_player_active_browsers);
+    #if defined _cef_browser_inc
+        Iter_Init(g_player_active_browsers);
+    #endif
 
     return 1;
 }
