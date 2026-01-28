@@ -2,6 +2,10 @@
 #define NO_TAGS
 
 #include <open.mp>
+
+#undef MAX_PLAYERS
+#define MAX_PLAYERS (2)
+
 #include <Pawn.RakNet>
 #include <Pawn.CMD>
 #include <foreach>
@@ -16,9 +20,38 @@ new mainString[4096];
 new g_player_name[MAX_PLAYERS][MAX_PLAYER_NAME];
 #define Name(%0) g_player_name[%0]
 
+stock GetXYInFrontOfPlayer(playerid, &Float:q, &Float:w, Float:distance)
+{
+    new Float:a;
+    GetPlayerPos(playerid, q, w, a);
+    GetPlayerFacingAngle(playerid, a);
+    q += (distance * floatsin(-a, degrees));
+    w += (distance * floatcos(-a, degrees));
+    return 1;
+}
+
+stock IsNullFloat(const Float:check[], size = sizeof check)
+{
+	new Float:check_float_summ;
+
+	for(new i; i < size; i++) check_float_summ += check[i];
+
+	return (check_float_summ == 0.0);
+}
+
+stock IsAFireGun(gunid)
+	return (gunid >= 22 && gunid <= 38);
+
+stock Float:PointToPoint(Float:x,Float:y,Float:z,Float:x2,Float:y2,Float:z2)
+	return floatsqroot(floatpower(floatabs(floatsub(x2,x)),2)+floatpower(floatabs(floatsub(y2,y)),2)+floatpower(floatabs(floatsub(z2,z)),2));
+
 stock GetString(const param1[], const param2[], bool:param3 = false) return !strcmp(param1, param2, param3);
 
+#define INTERIOR_NONE   (0)
+#define WORLD_NONE      (0)
+
 #include cef/main.inc
+#include peds/main.inc
 
 public OnGameModeInit()
 {
@@ -26,8 +59,22 @@ public OnGameModeInit()
 
     print("started");
 
+    CreateVehicle(411, 1765.5046, -1892.7008, 13.5611, 90.0, 255, 255, 150000);
+
     #if defined _cef_browser_inc
         Iter_Init(g_player_active_browsers);
+    #endif
+
+    #if defined _custom_peds_inc
+        Iter_Init(PedStreamList);
+
+        Iter_Clear(CustomPed);
+
+        for(new i; i < MAX_SERVER_PEDS; i++) ClearCustomPedData(i);
+
+        SetTimer("UpdateCustomPed", 500, true);
+
+        CreateServerPed(18, 1765.5046, -1892.7008, 13.5611, 90.0, .name = "Голый негр");
     #endif
 
     return 1;
@@ -175,3 +222,168 @@ public OnPlayerDisconnect(playerid, reason)
 
     return 1;
 }
+
+#if defined _custom_peds_inc
+
+cmd:addstream(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return false;
+
+    return Iter_Add(PedStreamList[pedid], playerid);
+}
+
+cmd:createped(playerid)
+{
+    new Float:x, Float:y, Float:z, Float:angle;
+
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, angle);
+
+    new pedid = CreateServerPed(18, x, y, z, angle, .name = "Голый негр");
+
+    return SendClientMessage(playerid, -1, "CreateServerPed: pedid = %d", pedid);
+}
+
+cmd:destroyped(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return SendClientMessage(playerid, -1, "/destroyped [pedid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return DestroyServerPed(pedid, true);
+}
+
+cmd:pedhealth(playerid, const params[])
+{
+    extract params -> new pedid, Float:health; else
+        return SendClientMessage(playerid, -1, "/pedhealth [pedid] [health]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return SetPedHealth(pedid, health);
+}
+
+cmd:pedarmour(playerid, const params[])
+{
+    extract params -> new pedid, Float:armour; else
+        return SendClientMessage(playerid, -1, "/pedarmour [pedid] [armour]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return SetPedArmour(pedid, armour);
+}
+
+cmd:pedweapon(playerid, const params[])
+{
+    extract params -> new pedid, weapon, ammo; else
+        return SendClientMessage(playerid, -1, "/pedarmour [pedid] [weapon] [ammo]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return GivePedWeapon(pedid, weapon, ammo);
+}
+
+cmd:pedpos(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return SendClientMessage(playerid, -1, "/pedpos [pedid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(playerid, x, y, z);
+
+    return SetPedPos(pedid, x, y, z);
+}
+
+cmd:moveped(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return SendClientMessage(playerid, -1, "/moveped [pedid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    new Float:pos[3];
+    GetPlayerPos(playerid, pos[0], pos[1], pos[2]);
+
+    return MovePedToPos(pedid, .data = pos);
+}
+
+cmd:pedanim(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return SendClientMessage(playerid, -1, "/pedanim [pedid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return ApplyPedAnimation(pedid, "DANCING", "DAN_RIGHT_A", 80000);
+}
+
+cmd:pedattack(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return SendClientMessage(playerid, -1, "/pedattack [pedid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return AttackPedToPlayer(pedid, playerid);
+}
+
+cmd:stoppedattack(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return SendClientMessage(playerid, -1, "/stoppedattack [pedid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return StopPedAttack(pedid);
+}
+
+cmd:pedvehicle(playerid, const params[])
+{
+    extract params -> new pedid, vehicleid, seatid; else
+        return SendClientMessage(playerid, -1, "/pedvehicle [pedid] [vehicleid] [seatid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    if(!IsValidVehicle(vehicleid))
+        return SendClientMessage(playerid, -1, "!IsValidVehicle(vehicleid)");
+
+    return PutPedInVehicle(pedid, vehicleid, seatid);
+}
+
+cmd:removepedvehicle(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return SendClientMessage(playerid, -1, "/removepedvehicle [pedid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return RemovePedFromVehicle(pedid);
+}
+
+cmd:pedchat(playerid, const params[])
+{
+    extract params -> new pedid; else
+        return SendClientMessage(playerid, -1, "/pedchat [pedid]");
+
+    if(!IsValidPed(pedid))
+        return SendClientMessage(playerid, -1, "!IsValidPed(pedid)");
+
+    return SetPedChatBubble(pedid, "test bubble", 0xFFFFFFFF, 10.0, 15000);
+}
+
+#endif
