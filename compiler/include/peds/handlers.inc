@@ -167,14 +167,7 @@ void UpdateCustomPed()
 
                 if(not_valid_attacker_id != true)
                 {
-                    /*if(Iter_Contains(SinisterZombies, id) && !IsPlayerInDynamicArea(CustomPedData[id][customPedAttackerID], SinisterInformation[E_DYNAMIC_SINISTER_ZONE])) 
-                        not_valid_attacker_id = true;
 
-                    else if(Iter_Contains(StoneManPeds, id) && !Iter_Contains(PlayersInMine, CustomPedData[id][customPedAttackerID]))
-                        not_valid_attacker_id = true;
-
-					else if(Iter_Contains(BanditCampPeds, id) && !IsPlayerInDynamicArea(CustomPedData[id][customPedAttackerID], BanditCampArea[STARTED_BANDIT_CAMP]))
-						not_valid_attacker_id = true;*/
                 }
 
 				if(not_valid_attacker_id)
@@ -183,17 +176,7 @@ void UpdateCustomPed()
 
 					CustomPedData[id][customPedAttackerID] = INVALID_PLAYER_ID;
 
-					if(pedConnection != INVALID_PLAYER_ID)
-						MovePedToPos(id, pedConnection);
-
-                    /*else if(Iter_Contains(SinisterZombies, id))
-                        MovePedToPos(id, INVALID_PLAYER_ID, Snt:ZombiesCoordinates[random(sizeof(Snt:ZombiesCoordinates))]);
-
-                    else if(Iter_Contains(StoneManPeds, id))
-                        MovePedToPos(id, INVALID_PLAYER_ID, Mine:StoneManPositions[random(sizeof Mine:StoneManPositions)]);
-
-                    else if(Iter_Contains(BanditCampPeds, id) && STARTED_BANDIT_CAMP != -1)
-                        MovePedToPos(id, INVALID_PLAYER_ID, BanditPositions[STARTED_BANDIT_CAMP][random(6)]);*/
+					if(pedConnection != INVALID_PLAYER_ID) MovePedToPos(id, pedConnection);
                 }
 				else
 				{
@@ -245,17 +228,7 @@ void UpdateCustomPed()
 
 						CustomPedData[id][customPedAttackerID] = INVALID_PLAYER_ID;
 
-						if(pedConnection != INVALID_PLAYER_ID)
-							MovePedToPos(id, pedConnection);
-
-                        /*else if(Iter_Contains(SinisterZombies, id))
-                            MovePedToPos(id, INVALID_PLAYER_ID, Snt:ZombiesCoordinates[random(sizeof(Snt:ZombiesCoordinates))]);
-
-                        else if(Iter_Contains(StoneManPeds, id))
-                            MovePedToPos(id, INVALID_PLAYER_ID, Mine:StoneManPositions[random(sizeof Mine:StoneManPositions)]);
-
-                    	else if(Iter_Contains(BanditCampPeds, id) && STARTED_BANDIT_CAMP != -1)
-                    	    MovePedToPos(id, INVALID_PLAYER_ID, BanditPositions[STARTED_BANDIT_CAMP][random(6)]);*/
+						if(pedConnection != INVALID_PLAYER_ID) MovePedToPos(id, pedConnection);
 
 						SendClientMessageToAll(0xFF0000FF, "PedMoveBack(index: %d) (перестать за ним бежать и перестать аттаковать, потому что дистанция > %.1f или не видно)", id, check_valid_attacker_distance[1]);
 					}
@@ -315,39 +288,7 @@ void UpdateCustomPed()
 			CustomPedData[id][customPedDeathStage] ++;
 			if(CustomPedData[id][customPedDeathStage] == 10)
 			{
-                /*if(Iter_Contains(SinisterZombies, id))
-			    {
-			        Snt:CreateBoxWithStones(CustomPedData[id][customPedPosition]);
-                    Iter_Remove(SinisterZombies, id);
-                }
-
-                else if(Iter_Contains(StoneManPeds, id))
-                    Iter_Remove(StoneManPeds, id);
-
-				else if(Iter_Contains(BanditCampPeds, id))
-				{
-					Iter_Remove(BanditCampPeds, id);
-				
-					if(Iter_Count(BanditCampPeds) < 1)
-					{
-						BanditChestData[E_BANDIT_CHEST_LABEL] = CreateDynamic3DTextLabel(
-
-							"{FFFFFF}[ Украденный ларец - {EF5B0C}закрыт{FFFFFF} ]\n\n{FCF8E8}Необходимо разрушить замок\nСтреляйте в ларец!", 0xFFFFFFFF,
-
-							BanditCampLabelPositions[STARTED_BANDIT_CAMP][0], BanditCampLabelPositions[STARTED_BANDIT_CAMP][1], BanditCampLabelPositions[STARTED_BANDIT_CAMP][2],
-
-							30.0, .worldid = STREAMER_VIRTUAL_WORLD_NONE, .interiorid = STREAMER_INTERIOR_NONE
-
-						);
-					}
-				}*/
-
 				CustomPedData[id][customPedDeathStage] = 0;
-
-				/*if(pedConnection != INVALID_PLAYER_ID)
-					for(new i; i < SecurityLoaded[pedConnection]; i++)
-						if(SecurityData[pedConnection][i][E_SECURITY_PED_ID] - 1 == id)
-							DeletePlayerSecurity(pedConnection, i, true);*/
 
 				DestroyServerPed(id);
 
